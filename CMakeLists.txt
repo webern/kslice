@@ -20,6 +20,8 @@ message("FFMPEG_LIBRARIES = ${FFMPEG_LIBRARIES}")
 # AudioToolbox.framework
 # CoreAudio.framework
 
+find_package( OpenCV REQUIRED )
+
 find_library(CORE_MEDIA CoreMedia)
 if (NOT CORE_MEDIA)
     message(FATAL_ERROR "CoreMedia not found")
@@ -94,6 +96,8 @@ endif()
 #endif()
 
 include_directories(${FFMPEG_INCLUDE_DIRS})
+include_directories(${OpenCV_INCLUDE_DIRS})
+message("OpenCV_INCLUDE_DIRS = ${OpenCV_INCLUDE_DIRS}")
 
 link_directories(${FFMPEG_LIBRARY_DIRS})
 add_executable(kslice main.cpp)
@@ -111,6 +115,8 @@ target_link_libraries(kslice ${LZMA_LIB})
 target_link_libraries(kslice ${SWR_LIB})
 target_link_libraries(kslice ${X264_LIB})
 target_link_libraries(kslice ${SECURITY_FRAMEWORK})
+target_link_libraries(kslice ${OpenCV_LIBS})
+
 #target_link_libraries(kslice ${LIBZ})
 #CoreServices
 #AUDIO_TOOLBOX
