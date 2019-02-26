@@ -200,10 +200,12 @@ int main()
     }
 
 //    video_decode_example(ofile, ifile);
+    AVCodecContext *pVideoCodecCtx = nullptr;
+    AVCodec *pVideoCodec = nullptr;
     unsigned int videoStreamIndex = -1;
     for (unsigned int i = 0; i < pFormatCtx->nb_streams; i++)
     {
-        if (pFormatCtx->streams[i]->codec->codec_type == CODEC_TYPE_VIDEO)
+        if (pFormatCtx->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO)
         {
             videoStreamIndex = i;
             pVideoCodecCtx = pFormatCtx->streams[i]->codec;
@@ -212,9 +214,10 @@ int main()
             if (pVideoCodec)
             {
                 // Open decoder
-                res = !(avcodec_open2(pVideoCodecCtx, pVideoCodec, NULL) < 0);
-                width = pVideoCodecCtx->coded_width;
-                height = pVideoCodecCtx->coded_height;
+                auto res = !(avcodec_open2(pVideoCodecCtx, pVideoCodec, NULL) < 0);
+                auto width = pVideoCodecCtx->coded_width;
+                auto height = pVideoCodecCtx->coded_height;
+                std::cout << res << width << height << std::endl;
             }
             break;
         }

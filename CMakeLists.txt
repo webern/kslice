@@ -82,6 +82,12 @@ if (NOT X264_LIB)
     message(FATAL_ERROR "x264 not found")
 endif()
 
+#2\. Security.framework
+find_library(SECURITY_FRAMEWORK Security)
+if (NOT SECURITY_FRAMEWORK)
+    message(FATAL_ERROR "Security not found")
+endif()
+
 #find_library(IMAGE_IO ImageIO)
 #if (NOT IMAGE_IO)
 #    message(FATAL_ERROR "ImageIO not found")
@@ -104,6 +110,7 @@ target_link_libraries(kslice ${ZLIB_LIBRARIES})
 target_link_libraries(kslice ${LZMA_LIB})
 target_link_libraries(kslice ${SWR_LIB})
 target_link_libraries(kslice ${X264_LIB})
+target_link_libraries(kslice ${SECURITY_FRAMEWORK})
 #target_link_libraries(kslice ${LIBZ})
 #CoreServices
 #AUDIO_TOOLBOX
