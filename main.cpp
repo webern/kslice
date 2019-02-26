@@ -3,6 +3,7 @@
 extern "C" {
 #include "libavcodec/avcodec.h"
 #include "libavutil/mathematics.h"
+#include "libavformat/avformat.h"
 }
 
 #define INBUF_SIZE 4096
@@ -42,7 +43,7 @@ static void video_decode_example(const char *outfilename, const char *filename)
     avcodec_register_all();
 
     /* find the mpeg1 video decoder */
-    codec = avcodec_find_decoder(AV_CODEC_ID_MPEG2VIDEO);
+    codec = avcodec_find_decoder(AV_CODEC_ID_H264);
     if (!codec) {
         fprintf(stderr, "codec not found\n");
         exit(1);
@@ -184,9 +185,40 @@ static void video_decode_example(const char *outfilename, const char *filename)
 
 int main()
 {
-    const char* const ifile = "../testfiles/1.mp4";
+    const char*  ifile = "../testfiles/1.mp4";
     const char* const ofile = "../testfiles/out.whatever";
-    video_decode_example(ofile, ifile);
+
+    avcodec_register_all();
+    auto pFormatCtx = avformat_alloc_context();
+
+
+    if (avformat_open_input(&pFormatCtx, ifile, NULL, NULL) != 0)
+    {
+        avformat_close_input(&pFormatCtx);
+        avformat_free_context(pFormatCtx);
+        return -1;
+    }
+
+//    video_decode_example(ofile, ifile);
+    unsigned int videoStreamIndex = -1;
+    for (unsigned int i = 0; i < pFormatCtx->nb_streams; i++)
+    {
+        if (pFormatCtx->streams[i]->codec->codec_type == CODEC_TYPE_VIDEO)
+        {
+            videoStreamIndex = i;
+            pVideoCodecCtx = pFormatCtx->streams[i]->codec;
+            // Find decoder
+            pVideoCodec = avcodec_find_decoder(pVideoCodecCtx->codec_id);
+            if (pVideoCodec)
+            {
+                // Open decoder
+                res = !(avcodec_open2(pVideoCodecCtx, pVideoCodec, NULL) < 0);
+                width = pVideoCodecCtx->coded_width;
+                height = pVideoCodecCtx->coded_height;
+            }
+            break;
+        }
+    }
     std::cout << "Hello, World!" << std::endl;
     return 0;
 }
