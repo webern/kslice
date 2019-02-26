@@ -1,36 +1,18 @@
 #include <iostream>
-
+#include <vector>
+#include <set>
 
 #include "opencv2/opencv.hpp"
+#include "Slice.h"
 
-
-//int main()
-//{
-//    cv::VideoCapture cap(0); // open the default camera
-//    if(!cap.isOpened())  // check if we succeeded
-//        return -1;
-//
-//    cv::Mat edges;
-//    cv::namedWindow("edges",1);
-//    for(;;)
-//    {
-//        cv::Mat frame;
-//        cap >> frame; // get a new frame from camera
-//        cvtColor(frame, edges, cv::COLOR_BGR2GRAY);
-//        GaussianBlur(edges, edges, cv::Size(7,7), 1.5, 1.5);
-//        Canny(edges, edges, 0, 30, 3);
-//        imshow("edges", edges);
-//        if(cv::waitKey(30) >= 0) break;
-//    }
-//    // the camera will be deinitialized automatically in VideoCapture destructor
-//    return 0;
-//}
 
 uint64_t hash(const cv::Mat& mat);
 
 int main()
 {
+    std::set<kslice::Slice> slices;
     cv::VideoCapture cap{ "../testfiles/1.mp4" };
+
 
     if( !cap.isOpened() )
     {
@@ -44,6 +26,7 @@ int main()
     {
 
         const auto isRead = cap.read(m);
+        const auto seconds = cap.get(cv::CAP_PROP_POS_MSEC) / 1000.0;
 
         if( !isRead )
         {
@@ -59,9 +42,16 @@ int main()
         cv::resize(greyMat, downsampledMap, cv::Size{ 32, 32 }, 0, 0, cv::INTER_LINEAR);
         const auto h = hash(greyMat);
 
+        kslice::Slice slice;
+        slice.seconds = seconds;
+        slice.hash = h;
+        slice.data = downsampledMap;
+        slices.emplace( std::move( slice ) );
         std::cout << h << std::endl;
     }
 
+    const auto samples = sample(slices, 4);
+    std::cout << "hello world" << std::endl;
 }
 
 // This is a naive algorithm for 'hashing' the images in a way that we can order them by by their distance from one

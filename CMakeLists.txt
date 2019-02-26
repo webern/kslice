@@ -100,7 +100,7 @@ include_directories(${OpenCV_INCLUDE_DIRS})
 message("OpenCV_INCLUDE_DIRS = ${OpenCV_INCLUDE_DIRS}")
 
 link_directories(${FFMPEG_LIBRARY_DIRS})
-add_executable(kslice main.cpp)
+add_executable(kslice main.cpp Slice.cpp Slice.h)
 target_link_libraries(kslice ${FFMPEG_LIBRARIES})
 target_link_libraries(kslice ${CORE_VIDEO})
 #target_link_libraries(kslice ${CORE_AUDIO})
