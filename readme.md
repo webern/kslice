@@ -57,3 +57,4 @@ https://www.ffmpeg.org/doxygen/0.6/api-example_8c-source.html
 https://gist.github.com/royshil/6318407
 https://stackoverflow.com/questions/25742626/ffmpeg-link-error
 https://unick-soft.ru/article.php?id=14
+http://dranger.com/ffmpeg/tutorial01.html

@@ -192,11 +192,15 @@ int main()
     auto pFormatCtx = avformat_alloc_context();
 
 
-    if (avformat_open_input(&pFormatCtx, ifile, NULL, NULL) != 0)
+    const auto avopen_result = avformat_open_input(&pFormatCtx, ifile, NULL, NULL);
+    if (avopen_result != 0)
     {
         avformat_close_input(&pFormatCtx);
         avformat_free_context(pFormatCtx);
-        return -1;
+        char msg[255] = {0};
+        av_strerror(avopen_result, msg, 255);
+        std::cout << msg << std::endl;
+        return 1;
     }
 
 //    video_decode_example(ofile, ifile);
