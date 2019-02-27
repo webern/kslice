@@ -119,7 +119,7 @@ int main()
         return 9;
     }
 
-    std::set<kslice::Slice> slices;
+    std::vector<kslice::Slice> slices;
     cv::VideoCapture cap{ "../testfiles/1.mp4" };
 
 
@@ -131,15 +131,28 @@ int main()
 
     cv::Mat m;
 
-    while ( true )
+    for( const auto frameIX : frameIndices )
     {
+        const auto ok = cap.set(cv::CAP_PROP_POS_FRAMES, static_cast<double>( frameIX ) );
+
+        if( !ok ) {
+            std::cout << "'ok == false' warning, unable to read frame index " << frameIX << std::endl;
+            continue;
+        }
+
         const auto isRead = cap.read(m);
+
+        if( !isRead ) {
+            std::cout << "'isRead == false' warning, unable to read frame index " << frameIX << std::endl;
+            continue;
+        }
+
         const auto seconds = cap.get(cv::CAP_PROP_POS_MSEC) / 1000.0;
 
-        if( !isRead )
-        {
-            break;
-        }
+//        if( !isRead )
+//        {
+//            break;
+//        }
 
         cv::Mat greyMat;
         cv::cvtColor(m, greyMat, cv::COLOR_BGR2GRAY);
@@ -154,13 +167,39 @@ int main()
         slice.seconds = seconds;
         slice.hash = h;
         slice.data = downsampledMap;
-        slices.emplace( std::move( slice ) );
-//        std::cout << h << std::endl;
+        slices.emplace_back( std::move( slice ) );
     }
 
-    const auto samples = sample(slices, 4);
+//    while ( true )
+//    {
+//        const auto isRead = cap.read(m);
+//        const auto seconds = cap.get(cv::CAP_PROP_POS_MSEC) / 1000.0;
+//
+//        if( !isRead )
+//        {
+//            break;
+//        }
+//
+//        cv::Mat greyMat;
+//        cv::cvtColor(m, greyMat, cv::COLOR_BGR2GRAY);
+//
+//        greyMat.resize(1);
+//        cv::Mat downsampledMap;
+//
+//        cv::resize(greyMat, downsampledMap, cv::Size{ 32, 32 }, 0, 0, cv::INTER_LINEAR);
+//        const auto h = hash(greyMat);
+//
+//        kslice::Slice slice;
+//        slice.seconds = seconds;
+//        slice.hash = h;
+//        slice.data = downsampledMap;
+//        slices.emplace( std::move( slice ) );
+////        std::cout << h << std::endl;
+//    }
+//
+//    const auto samples = sample(slices, 4);
 
-    for( const auto& s : samples )
+    for( const auto& s : slices )
     {
         s.toStream( std::cout );
         std::cout << "\n";
