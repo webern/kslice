@@ -63,12 +63,12 @@ Inspiration and Research
 ------------------------
   * [ffmpeg api example](https://www.ffmpeg.org/doxygen/0.6/api-example_8c-source.html)
   * [cmake ffmpeg find script](https://gist.github.com/royshil/6318407)
-  * https://unick-soft.ru/article.php?id=14
-  * http://dranger.com/ffmpeg/tutorial01.html
-  * http://answers.opencv.org/question/162781/videocaptureset-cap_prop_pos_frames-framenumber-not-exact-in-opencv-32-with-ffmpeg/
-  * http://answers.opencv.org/question/60390/how-to-get-keyframes-from-videofile/
-  * https://www.pyimagesearch.com/2017/11/27/image-hashing-opencv-python/
+  * [ffmpeg decode example](https://unick-soft.ru/article.php?id=14)
+  * [An ffmpeg and SDL Tutorial](http://dranger.com/ffmpeg/tutorial01.html)
+  * [Unanswered OpenCV Question on Keyframe Extraction](http://answers.opencv.org/question/60390/how-to-get-keyframes-from-videofile/)
+  * [Image Hashing Blogpost](https://www.pyimagesearch.com/2017/11/27/image-hashing-opencv-python/)
   * [SO ffmpeg linking question](https://stackoverflow.com/questions/25742626/ffmpeg-link-error)
+  * [A Question I Posted on OpenCV](http://answers.opencv.org/question/209548/extracting-keyframes-i-frames-from-a-video)
   
 Questions and Correspondence
 ----------------------------
