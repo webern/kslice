@@ -12,9 +12,6 @@
 #include "boost/algorithm/string.hpp"
 #include "Slice.h"
 
-
-uint64_t hash(const cv::Mat& mat);
-
 int main()
 {
     const auto tempDir = boost::filesystem::temp_directory_path();
@@ -156,11 +153,9 @@ int main()
         cv::Mat downsampledMap;
 
         cv::resize(greyMat, downsampledMap, cv::Size{ 32, 32 }, 0, 0, cv::INTER_LINEAR);
-        const auto h = hash(greyMat);
 
         kslice::Slice slice;
         slice.seconds = seconds;
-        slice.hash = h;
         slice.data = downsampledMap;
         slices.emplace_back( std::move( slice ) );
     }
