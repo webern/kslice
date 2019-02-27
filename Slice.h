@@ -1,7 +1,11 @@
 #pragma once
 
-#include <cstdint>
 #include <opencv2/core/mat.hpp>
+
+#include <cstdint>
+#include <vector>
+#include <set>
+#include <iostream>
 
 namespace kslice {
 
@@ -10,6 +14,8 @@ namespace kslice {
         uint64_t hash;
         double seconds;
         cv::Mat data;
+
+        void toStream(std::ostream& os) const;
     };
 
     // takes N equally-spaced samples from the slice set provided that slices.size() >= N
@@ -30,6 +36,11 @@ namespace kslice {
                 result.emplace_back( slice );
             }
             current++;
+
+            if( result.size() >= inNumSamples )
+            {
+                break;
+            }
         }
 
         const auto less = [&]( Slice& a, Slice& b ) {

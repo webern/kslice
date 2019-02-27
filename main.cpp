@@ -47,11 +47,16 @@ int main()
         slice.hash = h;
         slice.data = downsampledMap;
         slices.emplace( std::move( slice ) );
-        std::cout << h << std::endl;
+//        std::cout << h << std::endl;
     }
 
     const auto samples = sample(slices, 4);
-    std::cout << "hello world" << std::endl;
+
+    for( const auto& s : samples )
+    {
+        s.toStream( std::cout );
+        std::cout << "\n";
+    }
 }
 
 // This is a naive algorithm for 'hashing' the images in a way that we can order them by by their distance from one
