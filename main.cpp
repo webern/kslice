@@ -3,6 +3,12 @@
 #include <set>
 
 #include "opencv2/opencv.hpp"
+#include "boost/filesystem.hpp"
+#include "boost/lexical_cast.hpp"
+#include "boost/uuid/uuid.hpp"
+#include "boost/uuid/uuid_generators.hpp"
+#include "boost/uuid/uuid_io.hpp"
+
 #include "Slice.h"
 
 
@@ -10,6 +16,21 @@ uint64_t hash(const cv::Mat& mat);
 
 int main()
 {
+    const auto tempDir = boost::filesystem::temp_directory_path();
+    const auto tempFilename = boost::lexical_cast<std::string>( boost::uuids::random_generator()() ) + ".json";
+    const auto tempPath = tempDir / tempFilename;
+    std::cout << tempPath << std::endl;
+
+    std::string cmd = R"(ffprobe -select_streams v -i "../testfiles/1.mp4" -print_format xml -show_entries frame=pict_type,coded_picture_number > )";
+    cmd += boost::lexical_cast<std::string>( tempPath );
+    auto x = system(cmd.c_str());
+
+    if( x != 0 ) {
+        std::cerr << "ffprobe call failed with exit " << x << std::endl;
+        return x;
+    }
+
+    std::cout << x << std::endl;
     std::set<kslice::Slice> slices;
     cv::VideoCapture cap{ "../testfiles/1.mp4" };
 
@@ -24,7 +45,6 @@ int main()
 
     while ( true )
     {
-
         const auto isRead = cap.read(m);
         const auto seconds = cap.get(cv::CAP_PROP_POS_MSEC) / 1000.0;
 

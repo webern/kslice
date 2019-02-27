@@ -21,6 +21,7 @@ message("FFMPEG_LIBRARIES = ${FFMPEG_LIBRARIES}")
 # CoreAudio.framework
 
 find_package( OpenCV REQUIRED )
+find_package( boost COMPONENTS system filesystem REQUIRED )
 
 #find_library(CORE_MEDIA CoreMedia)
 #if (NOT CORE_MEDIA)
@@ -95,8 +96,23 @@ find_package( OpenCV REQUIRED )
 #    message(FATAL_ERROR "ImageIO not found")
 #endif()
 
+
+if (NOT Boost_FOUND)
+    message(FATAL_ERROR "Boost not found")
+endif()
+
+# apparent macOS bug
+# https://stackoverflow.com/questions/45648260/find-packageboost-returns-empty-boost-libraries
+if (NOT Boost_LIBRARIES)
+    list(APPEND Boost_LIBRARIES "/usr/local/lib/libboost_system.a" "/usr/local/lib/libboost_filesystem.a")
+    #message(FATAL_ERROR "Boost_LIBRARIES not found")
+endif()
+
 #include_directories(${FFMPEG_INCLUDE_DIRS})
 include_directories(${OpenCV_INCLUDE_DIRS})
+link_directories(${Boost_LIBRARY_DIRS})
+
+include_directories(kslice ${Boost_INCLUDE_DIRS})
 message("OpenCV_INCLUDE_DIRS = ${OpenCV_INCLUDE_DIRS}")
 
 #link_directories(${FFMPEG_LIBRARY_DIRS})
@@ -116,7 +132,13 @@ add_executable(kslice main.cpp Slice.cpp Slice.h)
 #target_link_libraries(kslice ${X264_LIB})
 #target_link_libraries(kslice ${SECURITY_FRAMEWORK})
 target_link_libraries(kslice ${OpenCV_LIBS})
+target_link_libraries(kslice ${Boost_LIBS})
 
+message("Boost_LIBRARIES = ${Boost_LIBRARIES}")
+message("Boost_VERSION = ${Boost_VERSION}")
+
+
+target_link_libraries( kslice ${Boost_LIBRARIES} )
 #target_link_libraries(kslice ${LIBZ})
 #CoreServices
 #AUDIO_TOOLBOX
