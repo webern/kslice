@@ -21,7 +21,6 @@ int main()
     const auto tempFilename = boost::lexical_cast<std::string>( boost::uuids::random_generator()() ) + ".xml";
     auto tempPath = boost::lexical_cast<std::string>( tempDir / tempFilename );
     boost::replace_all(tempPath, "\"", "");
-//    tempPath = tempPath.replace(std::begin(tempPath), std::end(tempPath), "\"", "" );
     std::cout << tempPath << std::endl;
 
     std::string cmd = R"(ffprobe -select_streams v -i "../testfiles/1.mp4" -print_format xml -show_entries frame=pict_type,coded_picture_number > )";
@@ -36,8 +35,89 @@ int main()
     std::cout << x << std::endl;
 
     auto xdoc = ezxml::XFactory::makeXDoc();
-    xdoc->loadFile( tempPath );
 
+    try {
+        xdoc->loadFile( tempPath );
+    } catch (std::exception& e) {
+        std::cerr << "parsing of xml doc failed: " << e.what() << std::endl;
+        return 1;
+    } catch (...) {
+        std::cerr << "parsing of xml doc failed with unknown exception" << std::endl;
+        return 1;
+    }
+
+    auto root = xdoc->getRoot();
+    if( root->getName() != "ffprobe" )
+    {
+        return 1;
+    }
+    const auto framesElementIter = root->begin();
+    if( framesElementIter == root->end() )
+    {
+        return 2;
+    }
+
+    auto xmlFrameIter = framesElementIter->begin();
+    const auto xmlFrameEnd = framesElementIter->end();
+    std::set<int> frameIndices;
+
+    for( ; xmlFrameIter != xmlFrameEnd; ++xmlFrameIter )
+    {
+        if( xmlFrameIter->getName() != "frame" )
+        {
+            return 3;
+        }
+
+        std::string pictType = "";
+        std::string codedPictureNumber = "";
+
+        for( auto a = xmlFrameIter->attributesBegin(); a != xmlFrameIter->attributesEnd(); ++a )
+        {
+            if( a->getName() == "pict_type" )
+            {
+                pictType = a->getValue();
+            }
+
+            if( a-> getName() == "coded_picture_number" )
+            {
+                codedPictureNumber = a->getValue();
+            }
+        }
+
+        if( pictType.empty() || codedPictureNumber.empty() )
+        {
+            return 4;
+        }
+
+        if( pictType == "I" )
+        {
+            int ix = -1;
+            try {
+                ix = std::stoi( codedPictureNumber.c_str() );
+            } catch (std::exception& e) {
+                std::cerr << "encountered a bad number in xml: " << e.what() << std::endl;
+                return 5;
+            } catch (...) {
+                std::cerr << "encountered a bad number in xml with unknown exception type" << std::endl;
+                return 6;
+            }
+
+            if( ix < 0 ) {
+                std::cerr << "negative number encountered" << std::endl;
+                return 7;
+            }
+
+            frameIndices.insert( ix );
+        }
+
+        std::cout << pictType << codedPictureNumber << std::endl;
+    }
+
+    if( frameIndices.empty() )
+    {
+        std::cerr << "no I frames were found" << std::endl;
+        return 9;
+    }
 
     std::set<kslice::Slice> slices;
     cv::VideoCapture cap{ "../testfiles/1.mp4" };
