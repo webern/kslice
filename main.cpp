@@ -8,7 +8,8 @@
 #include "boost/uuid/uuid.hpp"
 #include "boost/uuid/uuid_generators.hpp"
 #include "boost/uuid/uuid_io.hpp"
-
+#include "ezxml/ezxml.h"
+#include "boost/algorithm/string.hpp"
 #include "Slice.h"
 
 
@@ -17,12 +18,14 @@ uint64_t hash(const cv::Mat& mat);
 int main()
 {
     const auto tempDir = boost::filesystem::temp_directory_path();
-    const auto tempFilename = boost::lexical_cast<std::string>( boost::uuids::random_generator()() ) + ".json";
-    const auto tempPath = tempDir / tempFilename;
+    const auto tempFilename = boost::lexical_cast<std::string>( boost::uuids::random_generator()() ) + ".xml";
+    auto tempPath = boost::lexical_cast<std::string>( tempDir / tempFilename );
+    boost::replace_all(tempPath, "\"", "");
+//    tempPath = tempPath.replace(std::begin(tempPath), std::end(tempPath), "\"", "" );
     std::cout << tempPath << std::endl;
 
     std::string cmd = R"(ffprobe -select_streams v -i "../testfiles/1.mp4" -print_format xml -show_entries frame=pict_type,coded_picture_number > )";
-    cmd += boost::lexical_cast<std::string>( tempPath );
+    cmd += tempPath;
     auto x = system(cmd.c_str());
 
     if( x != 0 ) {
@@ -31,6 +34,11 @@ int main()
     }
 
     std::cout << x << std::endl;
+
+    auto xdoc = ezxml::XFactory::makeXDoc();
+    xdoc->loadFile( tempPath );
+
+
     std::set<kslice::Slice> slices;
     cv::VideoCapture cap{ "../testfiles/1.mp4" };
 

@@ -115,6 +115,8 @@ link_directories(${Boost_LIBRARY_DIRS})
 include_directories(kslice ${Boost_INCLUDE_DIRS})
 message("OpenCV_INCLUDE_DIRS = ${OpenCV_INCLUDE_DIRS}")
 
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/extern/ezxml")
+
 #link_directories(${FFMPEG_LIBRARY_DIRS})
 add_executable(kslice main.cpp Slice.cpp Slice.h)
 #target_link_libraries(kslice ${FFMPEG_LIBRARIES})
@@ -139,6 +141,7 @@ message("Boost_VERSION = ${Boost_VERSION}")
 
 
 target_link_libraries( kslice ${Boost_LIBRARIES} )
+target_link_libraries( kslice ezxml )
 #target_link_libraries(kslice ${LIBZ})
 #CoreServices
 #AUDIO_TOOLBOX
