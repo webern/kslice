@@ -17,18 +17,10 @@
 
 namespace kscore {
 
-    int kslice( int argc, char *argv[], std::ostream &stdout,
-                std::ostream &stderr ) {
-        Args args{argc, argv};
+    int kslice( const Args &args, std::ostream &stdout, std::ostream &stderr ) {
 
         if ( args.isHelp() ) {
-            stdout << args.help() << '\n';
             return 0;
-        }
-
-        if ( !args.isValid() ) {
-            stderr << "arguments are not valid: " << args.error() << '\n';
-            return 1;
         }
 
         const auto tempDir = boost::filesystem::temp_directory_path();

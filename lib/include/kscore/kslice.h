@@ -1,10 +1,10 @@
 #pragma once
+#include "kscore/Args.h"
 #include <cstdint>
 #include <iostream>
 
 namespace kscore {
 
-    int kslice( int argc, char *argv[], std::ostream &stdout,
-                std::ostream &stderr );
+    int kslice( const Args &args, std::ostream &stdout, std::ostream &stderr );
 
 }
