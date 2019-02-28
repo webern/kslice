@@ -31,60 +31,6 @@ namespace kscore {
             return 1;
         }
 
-        //        boost::program_options::options_description desc{"Options"};
-        //        desc.add_options()( "help", "Help screen" )(
-        //            "input", boost::program_options::value<std::string>(),
-        //            "Input file" )( "output",
-        //                            boost::program_options::value<std::string>(),
-        //                            "Output file" )(
-        //            "x-size", boost::program_options::value<int>(), "Grid size
-        //            x" )( "y-size", boost::program_options::value<int>(),
-        //            "Grid size y" );
-        //
-        //        boost::program_options::variables_map vm;
-        //        boost::program_options::store( parse_command_line( argc, argv,
-        //        desc ),
-        //                                       vm );
-        //        notify( vm );
-        //
-        //        if ( vm.count( "help" ) > 0 ) {
-        //            stdout << kslice::help << '\n';
-        //            return 0;
-        //        }
-        //
-        //        std::string input = "";
-        //        std::string output = "";
-        //        int xSize = 0;
-        //        int ySize = 0;
-        //
-        //        if ( vm.count( "input" ) == 0 ) {
-        //            stdout << "input is required\n";
-        //            stdout << kslice::help << '\n';
-        //            return 1;
-        //        } else {
-        //            input = vm["input"].as<std::string>();
-        //        }
-        //
-        //        if ( vm.count( "output" ) == 1 ) {
-        //            output = vm["output"].as<std::string>();
-        //        }
-        //
-        //        if ( vm.count( "x-size" ) == 1 ) {
-        //            xSize = vm["x-size"].as<int>();
-        //        }
-        //
-        //        if ( vm.count( "y-size" ) == 1 ) {
-        //            ySize = vm["y-size"].as<int>();
-        //        }
-        //
-        //        if ( xSize <= 0 ) {
-        //            xSize = 32;
-        //        }
-        //
-        //        if ( ySize <= 0 ) {
-        //            ySize = 32;
-        //        }
-
         const auto tempDir = boost::filesystem::temp_directory_path();
         const auto tempFilename = boost::lexical_cast<std::string>(
                                       boost::uuids::random_generator()() ) +
