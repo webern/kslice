@@ -5,6 +5,8 @@ A command line utility and library for extracting keyframes from video and norma
 
 #### Continuous Integration Status
 
+Continuous integration testing is running on CircleCI. Click [here](https://circleci.com/gh/webern/kslice) to go to the project.
+
   * `master` [![CircleCI](https://circleci.com/gh/webern/kslice/tree/master.svg?style=svg)](https://circleci.com/gh/webern/kslice/tree/master)
   * `develop` [![CircleCI](https://circleci.com/gh/webern/kslice/tree/develop.svg?style=svg)](https://circleci.com/gh/webern/kslice/tree/develop)
 
