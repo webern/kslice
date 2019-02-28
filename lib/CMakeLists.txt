@@ -1,11 +1,13 @@
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.0)
 project(kscore)
 
 set(CMAKE_CXX_STANDARD 11)
 set(PUBLIC_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 set(PRIVATE_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR})
+set(TEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/test)
 message("PUBLIC_INCLUDE = ${PUBLIC_INCLUDE}")
 message("PRIVATE_INCLUDE = ${PRIVATE_INCLUDE}")
+enable_testing()
 
 find_package( OpenCV REQUIRED )
 
@@ -47,3 +49,13 @@ message("Boost_VERSION = ${Boost_VERSION}")
 
 target_link_libraries( kscore ${Boost_LIBRARIES} )
 target_link_libraries( kscore ezxml )
+
+enable_testing()
+add_executable(kstest ${TEST_DIR}/main.cpp
+        ${TEST_DIR}/TestHelp.cpp)
+target_include_directories(kstest PRIVATE ${TEST_DIR})
+target_include_directories(kstest PRIVATE include)
+target_include_directories(kstest PRIVATE .)
+target_link_libraries(kstest ${OpenCV_LIBS})
+target_link_libraries(kstest kscore)
+add_test(NAME kstest COMMAND kstest WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test)

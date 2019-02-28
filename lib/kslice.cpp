@@ -16,7 +16,8 @@
 
 namespace kscore {
 
-    int kslice( int argc, char *argv[] ) {
+    int kslice( int argc, char *argv[], std::ostream &stdout,
+                std::ostream &stderr ) {
         boost::program_options::options_description desc{"Options"};
         desc.add_options()( "help", "Help screen" )(
             "input", boost::program_options::value<std::string>(),
@@ -32,7 +33,7 @@ namespace kscore {
         notify( vm );
 
         if ( vm.count( "help" ) > 0 ) {
-            std::cout << kslice::help << '\n';
+            stdout << kslice::help << '\n';
             return 0;
         }
 
@@ -42,8 +43,8 @@ namespace kscore {
         int ySize = 0;
 
         if ( vm.count( "input" ) == 0 ) {
-            std::cout << "input is required\n";
-            std::cout << kslice::help << '\n';
+            stdout << "input is required\n";
+            stdout << kslice::help << '\n';
             return 1;
         } else {
             input = vm["input"].as<std::string>();
@@ -81,11 +82,11 @@ namespace kscore {
             R"(ffprobe -select_streams v -i "####INPUTFILE####" -print_format xml -show_entries frame=pict_type,coded_picture_number > )";
         boost::replace_all( cmd, "####INPUTFILE####", input );
         cmd += "\"" + tempPath + "\"";
-        std::cout << cmd << std::endl;
+        stdout << cmd << std::endl;
         auto x = system( cmd.c_str() );
 
         if ( x != 0 ) {
-            std::cerr << "ffprobe call failed with exit " << x << std::endl;
+            stderr << "ffprobe call failed with exit " << x << std::endl;
             return x;
         }
 
@@ -94,10 +95,10 @@ namespace kscore {
         try {
             xdoc->loadFile( tempPath );
         } catch ( std::exception &e ) {
-            std::cerr << "parsing of xml doc failed: " << e.what() << std::endl;
+            stderr << "parsing of xml doc failed: " << e.what() << std::endl;
             return 1;
         } catch ( ... ) {
-            std::cerr << "parsing of xml doc failed with unknown exception"
+            stderr << "parsing of xml doc failed with unknown exception"
                       << std::endl;
             return 1;
         }
@@ -143,18 +144,18 @@ namespace kscore {
                 try {
                     ix = std::stoi( codedPictureNumber );
                 } catch ( std::exception &e ) {
-                    std::cerr << "encountered a bad number in xml: " << e.what()
+                    stderr << "encountered a bad number in xml: " << e.what()
                               << std::endl;
                     return 5;
                 } catch ( ... ) {
-                    std::cerr << "encountered a bad number in xml "
+                    stderr << "encountered a bad number in xml "
                                  "with unknown exception type"
                               << std::endl;
                     return 6;
                 }
 
                 if ( ix < 0 ) {
-                    std::cerr << "negative number encountered" << std::endl;
+                    stderr << "negative number encountered" << std::endl;
                     return 7;
                 }
 
@@ -163,7 +164,7 @@ namespace kscore {
         }
 
         if ( frameIndices.empty() ) {
-            std::cerr << "no I frames were found" << std::endl;
+            stderr << "no I frames were found" << std::endl;
             return 9;
         }
 
@@ -171,7 +172,7 @@ namespace kscore {
         cv::VideoCapture cap{"../testfiles/1.mp4"};
 
         if ( !cap.isOpened() ) {
-            std::cout << "could not open video" << std::endl;
+            stdout << "could not open video" << std::endl;
             return 10;
         }
 
@@ -182,7 +183,7 @@ namespace kscore {
                                      static_cast<double>( frameIX ) );
 
             if ( !ok ) {
-                std::cout << "'ok == false' warning, unable to read "
+                stdout << "'ok == false' warning, unable to read "
                              "frame index "
                           << frameIX << std::endl;
                 continue;
@@ -191,7 +192,7 @@ namespace kscore {
             const auto isRead = cap.read( m );
 
             if ( !isRead ) {
-                std::cout << "'isRead == false' warning, unable to "
+                stdout << "'isRead == false' warning, unable to "
                              "read frame index "
                           << frameIX << std::endl;
                 continue;
@@ -220,7 +221,7 @@ namespace kscore {
             std::ofstream of{output};
 
             if ( !of.is_open() ) {
-                std::cerr << "could not open the output file\n";
+                stderr << "could not open the output file\n";
                 return 11;
             }
 
@@ -228,7 +229,7 @@ namespace kscore {
         }
 
         if ( os == nullptr ) {
-            os = &std::cout;
+            os = &stdout;
         }
 
         for ( const auto &s : slices ) {
