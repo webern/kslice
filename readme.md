@@ -3,6 +3,13 @@ kslice
 
 A command line utility and library for extracting keyframes from video and normalizing them for ML processing.
 
+#### Continuous Integration Status
+
+Continuous integration testing is running on CircleCI. Click [here](https://circleci.com/gh/webern/kslice) to go to the project.
+
+  * `master` [![CircleCI](https://circleci.com/gh/webern/kslice/tree/master.svg?style=svg)](https://circleci.com/gh/webern/kslice/tree/master)
+  * `develop` [![CircleCI](https://circleci.com/gh/webern/kslice/tree/develop.svg?style=svg)](https://circleci.com/gh/webern/kslice/tree/develop)
+
 ## Requirements
 
 Given a video file and dimensions (e.g. 32x32, 64x64, 128x128), extract keyframes from the video, convert the frame into grayscale, split each frame into a grid of said dimensions, calculate median value of all the pixels of each cell of the grid and write the values to a CSV file together with the timestamp of the frame.
