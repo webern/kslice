@@ -79,7 +79,7 @@ namespace kscore {
         boost::replace_all( tempPath, "\"", "" );
 
         std::string cmd =
-            R"(ffprobe -select_streams v -i "####INPUTFILE####" -print_format xml -show_entries frame=pict_type,coded_picture_number > )";
+            R"(ffprobe -select_streams v -i "####INPUTFILE####" -loglevel "-8" -print_format xml -show_entries frame=pict_type,coded_picture_number > )";
         boost::replace_all( cmd, "####INPUTFILE####", input );
         cmd += "\"" + tempPath + "\"";
         stdout << cmd << std::endl;
@@ -99,7 +99,7 @@ namespace kscore {
             return 1;
         } catch ( ... ) {
             stderr << "parsing of xml doc failed with unknown exception"
-                      << std::endl;
+                   << std::endl;
             return 1;
         }
 
@@ -145,12 +145,12 @@ namespace kscore {
                     ix = std::stoi( codedPictureNumber );
                 } catch ( std::exception &e ) {
                     stderr << "encountered a bad number in xml: " << e.what()
-                              << std::endl;
+                           << std::endl;
                     return 5;
                 } catch ( ... ) {
                     stderr << "encountered a bad number in xml "
-                                 "with unknown exception type"
-                              << std::endl;
+                              "with unknown exception type"
+                           << std::endl;
                     return 6;
                 }
 
@@ -169,7 +169,7 @@ namespace kscore {
         }
 
         std::vector<kslice::Slice> slices;
-        cv::VideoCapture cap{"../testfiles/1.mp4"};
+        cv::VideoCapture cap{input};
 
         if ( !cap.isOpened() ) {
             stdout << "could not open video" << std::endl;
@@ -184,8 +184,8 @@ namespace kscore {
 
             if ( !ok ) {
                 stdout << "'ok == false' warning, unable to read "
-                             "frame index "
-                          << frameIX << std::endl;
+                          "frame index "
+                       << frameIX << std::endl;
                 continue;
             }
 
@@ -193,8 +193,8 @@ namespace kscore {
 
             if ( !isRead ) {
                 stdout << "'isRead == false' warning, unable to "
-                             "read frame index "
-                          << frameIX << std::endl;
+                          "read frame index "
+                       << frameIX << std::endl;
                 continue;
             }
 
@@ -215,26 +215,25 @@ namespace kscore {
             slices.emplace_back( std::move( slice ) );
         }
 
-        std::ostream *os = nullptr;
-
-        if ( !output.empty() ) {
-            std::ofstream of{output};
+        if ( output.empty() ) {
+            for ( const auto &s : slices ) {
+                s.toStream( std::cout );
+                std::cout << "\n";
+            }
+        } else {
+            std::ofstream of;
+            of.open( output.c_str(), std::ofstream::out );
 
             if ( !of.is_open() ) {
                 stderr << "could not open the output file\n";
                 return 11;
             }
 
-            os = &of;
-        }
-
-        if ( os == nullptr ) {
-            os = &stdout;
-        }
-
-        for ( const auto &s : slices ) {
-            s.toStream( *os );
-            ( *os ) << "\n";
+            for ( const auto &s : slices ) {
+                s.toStream( of );
+                of << "\n";
+            }
+            of.close();
         }
 
         return 0;
