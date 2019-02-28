@@ -16,12 +16,11 @@ TEST_CASE( "kslice end-to-end 2x3", "A" ) {
                           inputFilepath.c_str(),
                           "--output",
                           outputFilepath.c_str(),
-                          "/Users/mjb/Desktop/testxxx.csv",
                           "--x-size=2",
                           "--y-size=3",
                           nullptr};
     std::stringstream ss;
-    const auto exit = kscore::kslice( 8, (char **)argv, ss, std::cerr );
+    const auto exit = kscore::kslice( 7, (char **)argv, ss, std::cerr );
     const auto actual = ss.str();
     CHECK( !actual.empty() );
     CHECK( 0 == exit );
@@ -49,12 +48,11 @@ TEST_CASE( "kslice end-to-end 3x2", "B" ) {
                           inputFilepath.c_str(),
                           "--output",
                           outputFilepath.c_str(),
-                          "/Users/mjb/Desktop/testxxx.csv",
                           "--x-size=3",
                           "--y-size=2",
                           nullptr};
     std::stringstream ss;
-    const auto exit = kscore::kslice( 8, (char **)argv, ss, std::cerr );
+    const auto exit = kscore::kslice( 7, (char **)argv, ss, std::cerr );
     const auto actual = ss.str();
     CHECK( !actual.empty() );
     CHECK( 0 == exit );

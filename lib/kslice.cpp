@@ -8,6 +8,7 @@
 #include "boost/uuid/uuid_generators.hpp"
 #include "boost/uuid/uuid_io.hpp"
 #include "ezxml/ezxml.h"
+#include "kscore/Args.h"
 #include "kscore/Slice.h"
 #include "opencv2/opencv.hpp"
 #include <iostream>
@@ -18,57 +19,71 @@ namespace kscore {
 
     int kslice( int argc, char *argv[], std::ostream &stdout,
                 std::ostream &stderr ) {
-        boost::program_options::options_description desc{"Options"};
-        desc.add_options()( "help", "Help screen" )(
-            "input", boost::program_options::value<std::string>(),
-            "Input file" )( "output",
-                            boost::program_options::value<std::string>(),
-                            "Output file" )(
-            "x-size", boost::program_options::value<int>(), "Grid size x" )(
-            "y-size", boost::program_options::value<int>(), "Grid size y" );
+        Args args{argc, argv};
 
-        boost::program_options::variables_map vm;
-        boost::program_options::store( parse_command_line( argc, argv, desc ),
-                                       vm );
-        notify( vm );
-
-        if ( vm.count( "help" ) > 0 ) {
-            stdout << kslice::help << '\n';
+        if ( args.isHelp() ) {
+            stdout << args.help() << '\n';
             return 0;
         }
 
-        std::string input = "";
-        std::string output = "";
-        int xSize = 0;
-        int ySize = 0;
-
-        if ( vm.count( "input" ) == 0 ) {
-            stdout << "input is required\n";
-            stdout << kslice::help << '\n';
+        if ( !args.isValid() ) {
+            stderr << "arguments are not valid: " << args.error() << '\n';
             return 1;
-        } else {
-            input = vm["input"].as<std::string>();
         }
 
-        if ( vm.count( "output" ) == 1 ) {
-            output = vm["output"].as<std::string>();
-        }
-
-        if ( vm.count( "x-size" ) == 1 ) {
-            xSize = vm["x-size"].as<int>();
-        }
-
-        if ( vm.count( "y-size" ) == 1 ) {
-            ySize = vm["y-size"].as<int>();
-        }
-
-        if ( xSize <= 0 ) {
-            xSize = 32;
-        }
-
-        if ( ySize <= 0 ) {
-            ySize = 32;
-        }
+        //        boost::program_options::options_description desc{"Options"};
+        //        desc.add_options()( "help", "Help screen" )(
+        //            "input", boost::program_options::value<std::string>(),
+        //            "Input file" )( "output",
+        //                            boost::program_options::value<std::string>(),
+        //                            "Output file" )(
+        //            "x-size", boost::program_options::value<int>(), "Grid size
+        //            x" )( "y-size", boost::program_options::value<int>(),
+        //            "Grid size y" );
+        //
+        //        boost::program_options::variables_map vm;
+        //        boost::program_options::store( parse_command_line( argc, argv,
+        //        desc ),
+        //                                       vm );
+        //        notify( vm );
+        //
+        //        if ( vm.count( "help" ) > 0 ) {
+        //            stdout << kslice::help << '\n';
+        //            return 0;
+        //        }
+        //
+        //        std::string input = "";
+        //        std::string output = "";
+        //        int xSize = 0;
+        //        int ySize = 0;
+        //
+        //        if ( vm.count( "input" ) == 0 ) {
+        //            stdout << "input is required\n";
+        //            stdout << kslice::help << '\n';
+        //            return 1;
+        //        } else {
+        //            input = vm["input"].as<std::string>();
+        //        }
+        //
+        //        if ( vm.count( "output" ) == 1 ) {
+        //            output = vm["output"].as<std::string>();
+        //        }
+        //
+        //        if ( vm.count( "x-size" ) == 1 ) {
+        //            xSize = vm["x-size"].as<int>();
+        //        }
+        //
+        //        if ( vm.count( "y-size" ) == 1 ) {
+        //            ySize = vm["y-size"].as<int>();
+        //        }
+        //
+        //        if ( xSize <= 0 ) {
+        //            xSize = 32;
+        //        }
+        //
+        //        if ( ySize <= 0 ) {
+        //            ySize = 32;
+        //        }
 
         const auto tempDir = boost::filesystem::temp_directory_path();
         const auto tempFilename = boost::lexical_cast<std::string>(
@@ -80,7 +95,7 @@ namespace kscore {
 
         std::string cmd =
             R"(ffprobe -select_streams v -i "####INPUTFILE####" -loglevel "-8" -print_format xml -show_entries frame=pict_type,coded_picture_number > )";
-        boost::replace_all( cmd, "####INPUTFILE####", input );
+        boost::replace_all( cmd, "####INPUTFILE####", args.input() );
         cmd += "\"" + tempPath + "\"";
         stdout << cmd << std::endl;
         auto x = system( cmd.c_str() );
@@ -169,7 +184,7 @@ namespace kscore {
         }
 
         std::vector<kslice::Slice> slices;
-        cv::VideoCapture cap{input};
+        cv::VideoCapture cap{args.input()};
 
         if ( !cap.isOpened() ) {
             stdout << "could not open video" << std::endl;
@@ -206,8 +221,8 @@ namespace kscore {
             greyMat.resize( 1 );
             cv::Mat downsampledMap;
 
-            cv::resize( greyMat, downsampledMap, cv::Size{xSize, ySize}, 0, 0,
-                        cv::INTER_LINEAR );
+            cv::resize( greyMat, downsampledMap, cv::Size{args.x(), args.y()},
+                        0, 0, cv::INTER_LINEAR );
 
             kslice::Slice slice;
             slice.seconds = seconds;
@@ -215,14 +230,14 @@ namespace kscore {
             slices.emplace_back( std::move( slice ) );
         }
 
-        if ( output.empty() ) {
+        if ( args.output().empty() ) {
             for ( const auto &s : slices ) {
                 s.toStream( std::cout );
                 std::cout << "\n";
             }
         } else {
             std::ofstream of;
-            of.open( output.c_str(), std::ofstream::out );
+            of.open( args.output().c_str(), std::ofstream::out );
 
             if ( !of.is_open() ) {
                 stderr << "could not open the output file\n";
