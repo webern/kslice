@@ -3,6 +3,7 @@
 #include <set>
 
 #include "opencv2/opencv.hpp"
+#include <boost/program_options.hpp>
 #include "boost/filesystem.hpp"
 #include "boost/lexical_cast.hpp"
 #include "boost/uuid/uuid.hpp"
@@ -11,25 +12,85 @@
 #include "ezxml/ezxml.h"
 #include "boost/algorithm/string.hpp"
 #include "Slice.h"
+#include "Help.h"
 
-int main()
+int main(int argc, char *argv[])
 {
+    boost::program_options::options_description desc{"Options"};
+    desc.add_options()
+            ("help", "Help screen")
+            ("input", boost::program_options::value<std::string>(), "Input file")
+            ("output", boost::program_options::value<std::string>(), "Output file")
+            ("x-size", boost::program_options::value<int>(), "Grid size x")
+            ("y-size", boost::program_options::value<int>(), "Grid size y");
+
+    boost::program_options::variables_map vm;
+    boost::program_options::store(parse_command_line(argc, argv, desc), vm);
+    notify(vm);
+
+    if( vm.count( "help" ) > 0 )
+    {
+        std::cout << kslice::help << '\n';
+        return 0;
+    }
+
+    std::string input = "";
+    std::string output = "";
+    int xSize = 0;
+    int ySize = 0;
+
+    if( vm.count( "input" ) == 0 )
+    {
+        std::cout << "input is required\n";
+        std::cout << kslice::help << '\n';
+        return 1;
+    }
+    else
+    {
+        input = vm["input"].as<std::string>();
+    }
+
+    if( vm.count( "output" ) == 1 )
+    {
+        output = vm["output"].as<std::string>();
+    }
+
+    if( vm.count( "x-size" ) == 1 )
+    {
+        xSize = vm["x-size"].as<int>();
+    }
+
+    if( vm.count( "y-size" ) == 1 )
+    {
+        ySize = vm["y-size"].as<int>();
+    }
+
+    if( xSize <= 0 )
+    {
+        xSize = 32;
+    }
+
+    if( ySize <= 0 )
+    {
+        ySize = 32;
+    }
+
+
     const auto tempDir = boost::filesystem::temp_directory_path();
     const auto tempFilename = boost::lexical_cast<std::string>( boost::uuids::random_generator()() ) + ".xml";
     auto tempPath = boost::lexical_cast<std::string>( tempDir / tempFilename );
     boost::replace_all(tempPath, "\"", "");
-    std::cout << tempPath << std::endl;
 
-    std::string cmd = R"(ffprobe -select_streams v -i "../testfiles/1.mp4" -print_format xml -show_entries frame=pict_type,coded_picture_number > )";
-    cmd += tempPath;
+    std::string cmd = R"(ffprobe -select_streams v -i "####INPUTFILE####" -print_format xml -show_entries frame=pict_type,coded_picture_number > )";
+    boost::replace_all(cmd, "####INPUTFILE####", input);
+    cmd += "\"" + tempPath + "\"";
+    std::cout << cmd << std::endl;
     auto x = system(cmd.c_str());
 
     if( x != 0 ) {
         std::cerr << "ffprobe call failed with exit " << x << std::endl;
         return x;
     }
-
-    std::cout << x << std::endl;
 
     auto xdoc = ezxml::XFactory::makeXDoc();
 
@@ -65,8 +126,8 @@ int main()
             return 3;
         }
 
-        std::string pictType = "";
-        std::string codedPictureNumber = "";
+        std::string pictType;
+        std::string codedPictureNumber;
 
         for( auto a = xmlFrameIter->attributesBegin(); a != xmlFrameIter->attributesEnd(); ++a )
         {
@@ -90,7 +151,7 @@ int main()
         {
             int ix = -1;
             try {
-                ix = std::stoi( codedPictureNumber.c_str() );
+                ix = std::stoi( codedPictureNumber );
             } catch (std::exception& e) {
                 std::cerr << "encountered a bad number in xml: " << e.what() << std::endl;
                 return 5;
@@ -106,8 +167,6 @@ int main()
 
             frameIndices.insert( ix );
         }
-
-        std::cout << pictType << codedPictureNumber << std::endl;
     }
 
     if( frameIndices.empty() )
@@ -123,7 +182,7 @@ int main()
     if( !cap.isOpened() )
     {
         std::cout << "could not open video" << std::endl;
-        return 1;
+        return 10;
     }
 
     cv::Mat m;
@@ -152,7 +211,7 @@ int main()
         greyMat.resize(1);
         cv::Mat downsampledMap;
 
-        cv::resize(greyMat, downsampledMap, cv::Size{ 32, 32 }, 0, 0, cv::INTER_LINEAR);
+        cv::resize(greyMat, downsampledMap, cv::Size{ xSize, ySize }, 0, 0, cv::INTER_LINEAR);
 
         kslice::Slice slice;
         slice.seconds = seconds;
@@ -160,10 +219,30 @@ int main()
         slices.emplace_back( std::move( slice ) );
     }
 
+    std::ostream* os = nullptr;
+
+    if( !output.empty() )
+    {
+        std::ofstream of{ output };
+
+        if( !of.is_open() )
+        {
+            std::cerr << "could not open the output file\n";
+            return 11;
+        }
+
+        os = &of;
+    }
+
+    if( os == nullptr )
+    {
+        os = &std::cout;
+    }
+
     for( const auto& s : slices )
     {
-        s.toStream( std::cout );
-        std::cout << "\n";
+        s.toStream( *os );
+        ( *os ) << "\n";
     }
 }
 
