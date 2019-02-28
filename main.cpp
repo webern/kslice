@@ -1,59 +1,106 @@
-#include <iostream>
-#include <vector>
-#include <set>
-
-#include "opencv2/opencv.hpp"
+#include "Help.h"
+#include "Slice.h"
+#include "boost/algorithm/string.hpp"
 #include "boost/filesystem.hpp"
 #include "boost/lexical_cast.hpp"
+#include "boost/program_options.hpp"
 #include "boost/uuid/uuid.hpp"
 #include "boost/uuid/uuid_generators.hpp"
 #include "boost/uuid/uuid_io.hpp"
 #include "ezxml/ezxml.h"
-#include "boost/algorithm/string.hpp"
-#include "Slice.h"
+#include "opencv2/opencv.hpp"
+#include <iostream>
+#include <set>
+#include <vector>
 
+int main( int argc, char *argv[] ) {
+    boost::program_options::options_description desc{"Options"};
+    desc.add_options()( "help", "Help screen" )(
+        "input", boost::program_options::value<std::string>(), "Input file" )(
+        "output", boost::program_options::value<std::string>(), "Output file" )(
+        "x-size", boost::program_options::value<int>(), "Grid size x" )(
+        "y-size", boost::program_options::value<int>(), "Grid size y" );
 
-uint64_t hash(const cv::Mat& mat);
+    boost::program_options::variables_map vm;
+    boost::program_options::store( parse_command_line( argc, argv, desc ), vm );
+    notify( vm );
 
-int main()
-{
+    if ( vm.count( "help" ) > 0 ) {
+        std::cout << kslice::help << '\n';
+        return 0;
+    }
+
+    std::string input = "";
+    std::string output = "";
+    int xSize = 0;
+    int ySize = 0;
+
+    if ( vm.count( "input" ) == 0 ) {
+        std::cout << "input is required\n";
+        std::cout << kslice::help << '\n';
+        return 1;
+    } else {
+        input = vm["input"].as<std::string>();
+    }
+
+    if ( vm.count( "output" ) == 1 ) {
+        output = vm["output"].as<std::string>();
+    }
+
+    if ( vm.count( "x-size" ) == 1 ) {
+        xSize = vm["x-size"].as<int>();
+    }
+
+    if ( vm.count( "y-size" ) == 1 ) {
+        ySize = vm["y-size"].as<int>();
+    }
+
+    if ( xSize <= 0 ) {
+        xSize = 32;
+    }
+
+    if ( ySize <= 0 ) {
+        ySize = 32;
+    }
+
     const auto tempDir = boost::filesystem::temp_directory_path();
-    const auto tempFilename = boost::lexical_cast<std::string>( boost::uuids::random_generator()() ) + ".xml";
+    const auto tempFilename =
+        boost::lexical_cast<std::string>( boost::uuids::random_generator()() ) +
+        ".xml";
     auto tempPath = boost::lexical_cast<std::string>( tempDir / tempFilename );
-    boost::replace_all(tempPath, "\"", "");
-    std::cout << tempPath << std::endl;
+    boost::replace_all( tempPath, "\"", "" );
 
-    std::string cmd = R"(ffprobe -select_streams v -i "../testfiles/1.mp4" -print_format xml -show_entries frame=pict_type,coded_picture_number > )";
-    cmd += tempPath;
-    auto x = system(cmd.c_str());
+    std::string cmd =
+        R"(ffprobe -select_streams v -i "####INPUTFILE####" -print_format xml -show_entries frame=pict_type,coded_picture_number > )";
+    boost::replace_all( cmd, "####INPUTFILE####", input );
+    cmd += "\"" + tempPath + "\"";
+    std::cout << cmd << std::endl;
+    auto x = system( cmd.c_str() );
 
-    if( x != 0 ) {
+    if ( x != 0 ) {
         std::cerr << "ffprobe call failed with exit " << x << std::endl;
         return x;
     }
-
-    std::cout << x << std::endl;
 
     auto xdoc = ezxml::XFactory::makeXDoc();
 
     try {
         xdoc->loadFile( tempPath );
-    } catch (std::exception& e) {
+    } catch ( std::exception &e ) {
         std::cerr << "parsing of xml doc failed: " << e.what() << std::endl;
         return 1;
-    } catch (...) {
-        std::cerr << "parsing of xml doc failed with unknown exception" << std::endl;
+    } catch ( ... ) {
+        std::cerr << "parsing of xml doc failed with unknown exception"
+                  << std::endl;
         return 1;
     }
 
     auto root = xdoc->getRoot();
-    if( root->getName() != "ffprobe" )
-    {
+    if ( root->getName() != "ffprobe" ) {
         return 1;
     }
     const auto framesElementIter = root->begin();
-    if( framesElementIter == root->end() )
-    {
+    if ( framesElementIter == root->end() ) {
         return 2;
     }
 
@@ -61,169 +108,124 @@ int main()
     const auto xmlFrameEnd = framesElementIter->end();
     std::set<int> frameIndices;
 
-    for( ; xmlFrameIter != xmlFrameEnd; ++xmlFrameIter )
-    {
-        if( xmlFrameIter->getName() != "frame" )
-        {
+    for ( ; xmlFrameIter != xmlFrameEnd; ++xmlFrameIter ) {
+        if ( xmlFrameIter->getName() != "frame" ) {
             return 3;
         }
 
-        std::string pictType = "";
-        std::string codedPictureNumber = "";
+        std::string pictType;
+        std::string codedPictureNumber;
 
-        for( auto a = xmlFrameIter->attributesBegin(); a != xmlFrameIter->attributesEnd(); ++a )
-        {
-            if( a->getName() == "pict_type" )
-            {
+        for ( auto a = xmlFrameIter->attributesBegin();
+              a != xmlFrameIter->attributesEnd(); ++a ) {
+            if ( a->getName() == "pict_type" ) {
                 pictType = a->getValue();
             }
 
-            if( a-> getName() == "coded_picture_number" )
-            {
+            if ( a->getName() == "coded_picture_number" ) {
                 codedPictureNumber = a->getValue();
             }
         }
 
-        if( pictType.empty() || codedPictureNumber.empty() )
-        {
+        if ( pictType.empty() || codedPictureNumber.empty() ) {
             return 4;
         }
 
-        if( pictType == "I" )
-        {
+        if ( pictType == "I" ) {
             int ix = -1;
             try {
-                ix = std::stoi( codedPictureNumber.c_str() );
-            } catch (std::exception& e) {
-                std::cerr << "encountered a bad number in xml: " << e.what() << std::endl;
+                ix = std::stoi( codedPictureNumber );
+            } catch ( std::exception &e ) {
+                std::cerr << "encountered a bad number in xml: " << e.what()
+                          << std::endl;
                 return 5;
-            } catch (...) {
-                std::cerr << "encountered a bad number in xml with unknown exception type" << std::endl;
+            } catch ( ... ) {
+                std::cerr << "encountered a bad number in xml "
+                             "with unknown exception type"
+                          << std::endl;
                 return 6;
             }
 
-            if( ix < 0 ) {
+            if ( ix < 0 ) {
                 std::cerr << "negative number encountered" << std::endl;
                 return 7;
             }
 
             frameIndices.insert( ix );
         }
-
-        std::cout << pictType << codedPictureNumber << std::endl;
     }
 
-    if( frameIndices.empty() )
-    {
+    if ( frameIndices.empty() ) {
         std::cerr << "no I frames were found" << std::endl;
         return 9;
     }
 
     std::vector<kslice::Slice> slices;
-    cv::VideoCapture cap{ "../testfiles/1.mp4" };
+    cv::VideoCapture cap{"../testfiles/1.mp4"};
 
-
-    if( !cap.isOpened() )
-    {
+    if ( !cap.isOpened() ) {
         std::cout << "could not open video" << std::endl;
-        return 1;
+        return 10;
     }
 
     cv::Mat m;
 
-    for( const auto frameIX : frameIndices )
-    {
-        const auto ok = cap.set(cv::CAP_PROP_POS_FRAMES, static_cast<double>( frameIX ) );
+    for ( const auto frameIX : frameIndices ) {
+        const auto ok =
+            cap.set( cv::CAP_PROP_POS_FRAMES, static_cast<double>( frameIX ) );
 
-        if( !ok ) {
-            std::cout << "'ok == false' warning, unable to read frame index " << frameIX << std::endl;
+        if ( !ok ) {
+            std::cout << "'ok == false' warning, unable to read "
+                         "frame index "
+                      << frameIX << std::endl;
             continue;
         }
 
-        const auto isRead = cap.read(m);
+        const auto isRead = cap.read( m );
 
-        if( !isRead ) {
-            std::cout << "'isRead == false' warning, unable to read frame index " << frameIX << std::endl;
+        if ( !isRead ) {
+            std::cout << "'isRead == false' warning, unable to "
+                         "read frame index "
+                      << frameIX << std::endl;
             continue;
         }
 
-        const auto seconds = cap.get(cv::CAP_PROP_POS_MSEC) / 1000.0;
-
-//        if( !isRead )
-//        {
-//            break;
-//        }
+        const auto seconds = cap.get( cv::CAP_PROP_POS_MSEC ) / 1000.0;
 
         cv::Mat greyMat;
-        cv::cvtColor(m, greyMat, cv::COLOR_BGR2GRAY);
+        cv::cvtColor( m, greyMat, cv::COLOR_BGR2GRAY );
 
-        greyMat.resize(1);
+        greyMat.resize( 1 );
         cv::Mat downsampledMap;
 
-        cv::resize(greyMat, downsampledMap, cv::Size{ 32, 32 }, 0, 0, cv::INTER_LINEAR);
-        const auto h = hash(greyMat);
+        cv::resize( greyMat, downsampledMap, cv::Size{xSize, ySize}, 0, 0,
+                    cv::INTER_LINEAR );
 
         kslice::Slice slice;
         slice.seconds = seconds;
-        slice.hash = h;
         slice.data = downsampledMap;
         slices.emplace_back( std::move( slice ) );
     }
 
-//    while ( true )
-//    {
-//        const auto isRead = cap.read(m);
-//        const auto seconds = cap.get(cv::CAP_PROP_POS_MSEC) / 1000.0;
-//
-//        if( !isRead )
-//        {
-//            break;
-//        }
-//
-//        cv::Mat greyMat;
-//        cv::cvtColor(m, greyMat, cv::COLOR_BGR2GRAY);
-//
-//        greyMat.resize(1);
-//        cv::Mat downsampledMap;
-//
-//        cv::resize(greyMat, downsampledMap, cv::Size{ 32, 32 }, 0, 0, cv::INTER_LINEAR);
-//        const auto h = hash(greyMat);
-//
-//        kslice::Slice slice;
-//        slice.seconds = seconds;
-//        slice.hash = h;
-//        slice.data = downsampledMap;
-//        slices.emplace( std::move( slice ) );
-////        std::cout << h << std::endl;
-//    }
-//
-//    const auto samples = sample(slices, 4);
+    std::ostream *os = nullptr;
 
-    for( const auto& s : slices )
-    {
-        s.toStream( std::cout );
-        std::cout << "\n";
-    }
-}
+    if ( !output.empty() ) {
+        std::ofstream of{output};
 
-// This is a naive algorithm for 'hashing' the images in a way that we can order them by by their distance from one
-// another. We can imagine that a better algorithm will be plugged in here.
-uint64_t hash(const cv::Mat& mat)
-{
-    uint64_t sum = 0;
-    const uint64_t sz = (uint64_t)mat.rows * (uint64_t)mat.cols;
-//    cv::Mat adapted;
-//    cv::adaptiveThreshold(mat, adapted, 190, cv::ADAPTIVE_THRESH_GAUSSIAN_C, cv::ADAPTIVE_THRESH_MEAN_C, 11, 0);
-
-    for (int r = 0; r < mat.rows; r++)
-    {
-        // Loop over all columns
-        for ( int c = 0; c < mat.cols; c++)
-        {
-            const auto pixel = mat.at<uchar>(r, c);
-            sum += pixel;
+        if ( !of.is_open() ) {
+            std::cerr << "could not open the output file\n";
+            return 11;
         }
+
+        os = &of;
     }
 
-    return sum;
+    if ( os == nullptr ) {
+        os = &std::cout;
+    }
+
+    for ( const auto &s : slices ) {
+        s.toStream( *os );
+        ( *os ) << "\n";
+    }
 }

@@ -21,7 +21,7 @@ message("FFMPEG_LIBRARIES = ${FFMPEG_LIBRARIES}")
 # CoreAudio.framework
 
 find_package( OpenCV REQUIRED )
-find_package( boost COMPONENTS system filesystem REQUIRED )
+find_package( boost COMPONENTS system filesystem program_options REQUIRED )
 
 #find_library(CORE_MEDIA CoreMedia)
 #if (NOT CORE_MEDIA)
@@ -104,7 +104,7 @@ endif()
 # apparent macOS bug
 # https://stackoverflow.com/questions/45648260/find-packageboost-returns-empty-boost-libraries
 if (NOT Boost_LIBRARIES)
-    list(APPEND Boost_LIBRARIES "/usr/local/lib/libboost_system.a" "/usr/local/lib/libboost_filesystem.a")
+    list(APPEND Boost_LIBRARIES "/usr/local/lib/libboost_system.a" "/usr/local/lib/libboost_filesystem.a" "libboost_program_options.a")
     #message(FATAL_ERROR "Boost_LIBRARIES not found")
 endif()
 
