@@ -12,7 +12,7 @@ enable_testing()
 find_package( OpenCV REQUIRED )
 
 set(Boost_USE_STATIC_LIBS   ON)
-find_package( boost COMPONENTS system filesystem program_options REQUIRED )
+find_package( Boost COMPONENTS system filesystem program_options REQUIRED )
 
 if (NOT Boost_FOUND)
     message(FATAL_ERROR "Boost not found")
