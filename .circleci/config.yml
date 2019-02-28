@@ -1,0 +1,15 @@
+# Custom CircleCI 2.0 configuration file
+version: 2
+jobs:
+  build:
+    docker:
+      - image: webern/ksliceci:v001
+
+    working_directory: /src
+    steps:
+      - checkout
+      - run: mkdir -p /src/bld
+      - run: cd /src/bld && cmake ..
+      - run: cd /src/bld && make
+      - run: /src/bld/kslice --help
+      - run: /src/bld/lib/kstest
