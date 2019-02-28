@@ -8,6 +8,8 @@ namespace kscore {
     struct Args {
       public:
         Args( int argc, char *argv[] );
+        Args( bool isHelp, std::string input, std::string output, int x,
+              int y );
         bool isValid() const;
         std::string error() const;
         std::string help() const;

@@ -53,7 +53,7 @@ target_link_libraries( kscore ezxml )
 enable_testing()
 add_executable(kstest ${TEST_DIR}/main.cpp
         ${TEST_DIR}/TestHelp.cpp
-        ${TEST_DIR}/TestKSlice.cpp)
+        ${TEST_DIR}/TestKSlice.cpp test/TestArgs.cpp)
 target_include_directories(kstest PRIVATE ${TEST_DIR})
 target_include_directories(kstest PRIVATE include)
 target_include_directories(kstest PRIVATE .)

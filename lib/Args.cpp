@@ -60,6 +60,17 @@ namespace kscore {
         }
     }
 
+    Args::Args( bool isHelp, std::string input, std::string output, int x,
+                int y )
+        : myIsHelp{isHelp}, myInput{input}, myOutput{output}, myX{x}, myY{y} {
+        if ( myX <= 0 ) {
+            myX = 32;
+        }
+        if ( myY <= 0 ) {
+            myY = 32;
+        }
+    }
+
     bool Args::isValid() const {
         if ( myX < 0 ) {
             return false;
