@@ -8,7 +8,6 @@ jobs:
     working_directory: /src
     steps:
       - checkout
-      - run: apt-get install libboost-all-dev
       - run: mkdir -p /src/bld
       - run: cd /src/bld && cmake ..
       - run: cd /src/bld && make
