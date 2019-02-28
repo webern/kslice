@@ -10,25 +10,18 @@
 
 namespace kscore {
 
-    IFrameStrategyUPtr makeFFProbe( std::string inputFile ) {
-        return std::make_unique<FFProbeStrategy>( std::move( inputFile ) );
-    }
+    IFrameStrategyUPtr makeFFProbe( std::string inputFile ) { return std::make_unique<FFProbeStrategy>( std::move( inputFile ) ); }
 
-    FFProbeStrategy::FFProbeStrategy( std::string inputFile )
-        : myInputFile{std::move( inputFile )} {}
+    FFProbeStrategy::FFProbeStrategy( std::string inputFile ) : myInputFile{std::move( inputFile )} {}
 
     std::vector<int> FFProbeStrategy::getIFrames() {
 
         const auto tempDir = boost::filesystem::temp_directory_path();
-        const auto tempFilename = boost::lexical_cast<std::string>(
-                                      boost::uuids::random_generator()() ) +
-                                  ".xml";
-        auto tempPath =
-            boost::lexical_cast<std::string>( tempDir / tempFilename );
+        const auto tempFilename = boost::lexical_cast<std::string>( boost::uuids::random_generator()() ) + ".xml";
+        auto tempPath = boost::lexical_cast<std::string>( tempDir / tempFilename );
         boost::replace_all( tempPath, "\"", "" );
 
-        std::string cmd =
-            R"(ffprobe -select_streams v -i "####INPUTFILE####" -loglevel "-8" -print_format xml -show_entries frame=pict_type,coded_picture_number > )";
+        std::string cmd = R"(ffprobe -select_streams v -i "####INPUTFILE####" -loglevel "-8" -print_format xml -show_entries frame=pict_type,coded_picture_number > )";
         boost::replace_all( cmd, "####INPUTFILE####", myInputFile );
         cmd += "\"" + tempPath + "\"";
         auto sysExit = system( cmd.c_str() );
@@ -43,8 +36,7 @@ namespace kscore {
         xdoc->loadFile( tempPath );
         auto root = xdoc->getRoot();
         if ( root->getName() != "ffprobe" ) {
-            throw std::runtime_error{
-                "unexpected xml format 'ffprobe' not found"};
+            throw std::runtime_error{"unexpected xml format 'ffprobe' not found"};
         }
         const auto framesElementIter = root->begin();
         if ( framesElementIter == root->end() ) {
@@ -57,15 +49,13 @@ namespace kscore {
 
         for ( ; xmlFrameIter != xmlFrameEnd; ++xmlFrameIter ) {
             if ( xmlFrameIter->getName() != "frame" ) {
-                throw std::runtime_error{
-                    "unexpected xml format 'frame' not found"};
+                throw std::runtime_error{"unexpected xml format 'frame' not found"};
             }
 
             std::string pictType;
             std::string codedPictureNumber;
 
-            for ( auto a = xmlFrameIter->attributesBegin();
-                  a != xmlFrameIter->attributesEnd(); ++a ) {
+            for ( auto a = xmlFrameIter->attributesBegin(); a != xmlFrameIter->attributesEnd(); ++a ) {
                 if ( a->getName() == "pict_type" ) {
                     pictType = a->getValue();
                 }
@@ -76,8 +66,7 @@ namespace kscore {
             }
 
             if ( pictType.empty() || codedPictureNumber.empty() ) {
-                throw std::runtime_error{
-                    "unexpected xml format bad values encountered"};
+                throw std::runtime_error{"unexpected xml format bad values encountered"};
             }
 
             if ( pictType == "I" ) {
@@ -86,8 +75,7 @@ namespace kscore {
                     ix = std::stoi( codedPictureNumber );
                 } catch ( std::exception &e ) {
                     std::stringstream msg;
-                    msg << "encountered a bad number in xml: " << e.what()
-                        << std::endl;
+                    msg << "encountered a bad number in xml: " << e.what() << std::endl;
                     throw std::runtime_error{msg.str()};
                 } catch ( ... ) {
                     std::stringstream msg;
@@ -98,8 +86,7 @@ namespace kscore {
                 }
 
                 if ( ix < 0 ) {
-                    throw std::runtime_error{
-                        "unexpected xml format negative number encountered"};
+                    throw std::runtime_error{"unexpected xml format negative number encountered"};
                 }
 
                 frameIndices.push_back( ix );

@@ -13,5 +13,15 @@ int main( int argc, char *argv[] ) {
         return 1;
     }
 
-    return kscore::kslice( args, std::cout, std::cerr );
+    try {
+        kscore::kslice( args, kscore::makeFFProbe( args.input() ), std::cout, std::cerr );
+    } catch ( std::exception &e ) {
+        std::cerr << e.what() << '\n';
+        return 2;
+    } catch ( ... ) {
+        std::cerr << "unknown exception occurred" << '\n';
+        return 3;
+    }
+
+    return 0;
 }

@@ -18,15 +18,17 @@
 
 namespace kscore {
 
-    int kslice( const Args &args, std::ostream &stdout, std::ostream &stderr ) {
+    int kslice( const Args &args, IFrameStrategyUPtr &&iframeStrategy, std::ostream &stdout, std::ostream &stderr ) {
 
         if ( args.isHelp() ) {
             return 0;
         }
 
-        auto ffprobe = FFProbeStrategy{args.input()};
-        const auto frameIndices = ffprobe.getIFrames();
+        if ( !iframeStrategy ) {
+            throw std::runtime_error{"iframe strategy is null"};
+        }
 
+        const auto frameIndices = iframeStrategy->getIFrames();
         std::vector<kslice::Slice> slices;
         cv::VideoCapture cap{args.input()};
 
@@ -38,8 +40,7 @@ namespace kscore {
         cv::Mat m;
 
         for ( const auto frameIX : frameIndices ) {
-            const auto ok = cap.set( cv::CAP_PROP_POS_FRAMES,
-                                     static_cast<double>( frameIX ) );
+            const auto ok = cap.set( cv::CAP_PROP_POS_FRAMES, static_cast<double>( frameIX ) );
 
             if ( !ok ) {
                 stdout << "'ok == false' warning, unable to read "
@@ -65,8 +66,7 @@ namespace kscore {
             greyMat.resize( 1 );
             cv::Mat downsampledMap;
 
-            cv::resize( greyMat, downsampledMap, cv::Size{args.x(), args.y()},
-                        0, 0, cv::INTER_LINEAR );
+            cv::resize( greyMat, downsampledMap, cv::Size{args.x(), args.y()}, 0, 0, cv::INTER_LINEAR );
 
             kslice::Slice slice;
             slice.seconds = seconds;
