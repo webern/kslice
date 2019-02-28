@@ -1,4 +1,5 @@
 #include "kscore/kslice.h"
+#include "FFProbeStrategy.h"
 #include "Help.h"
 #include "boost/algorithm/string.hpp"
 #include "boost/filesystem.hpp"
@@ -23,103 +24,8 @@ namespace kscore {
             return 0;
         }
 
-        const auto tempDir = boost::filesystem::temp_directory_path();
-        const auto tempFilename = boost::lexical_cast<std::string>(
-                                      boost::uuids::random_generator()() ) +
-                                  ".xml";
-        auto tempPath =
-            boost::lexical_cast<std::string>( tempDir / tempFilename );
-        boost::replace_all( tempPath, "\"", "" );
-
-        std::string cmd =
-            R"(ffprobe -select_streams v -i "####INPUTFILE####" -loglevel "-8" -print_format xml -show_entries frame=pict_type,coded_picture_number > )";
-        boost::replace_all( cmd, "####INPUTFILE####", args.input() );
-        cmd += "\"" + tempPath + "\"";
-        stdout << cmd << std::endl;
-        auto x = system( cmd.c_str() );
-
-        if ( x != 0 ) {
-            stderr << "ffprobe call failed with exit " << x << std::endl;
-            return x;
-        }
-
-        auto xdoc = ezxml::XFactory::makeXDoc();
-
-        try {
-            xdoc->loadFile( tempPath );
-        } catch ( std::exception &e ) {
-            stderr << "parsing of xml doc failed: " << e.what() << std::endl;
-            return 1;
-        } catch ( ... ) {
-            stderr << "parsing of xml doc failed with unknown exception"
-                   << std::endl;
-            return 1;
-        }
-
-        auto root = xdoc->getRoot();
-        if ( root->getName() != "ffprobe" ) {
-            return 1;
-        }
-        const auto framesElementIter = root->begin();
-        if ( framesElementIter == root->end() ) {
-            return 2;
-        }
-
-        auto xmlFrameIter = framesElementIter->begin();
-        const auto xmlFrameEnd = framesElementIter->end();
-        std::set<int> frameIndices;
-
-        for ( ; xmlFrameIter != xmlFrameEnd; ++xmlFrameIter ) {
-            if ( xmlFrameIter->getName() != "frame" ) {
-                return 3;
-            }
-
-            std::string pictType;
-            std::string codedPictureNumber;
-
-            for ( auto a = xmlFrameIter->attributesBegin();
-                  a != xmlFrameIter->attributesEnd(); ++a ) {
-                if ( a->getName() == "pict_type" ) {
-                    pictType = a->getValue();
-                }
-
-                if ( a->getName() == "coded_picture_number" ) {
-                    codedPictureNumber = a->getValue();
-                }
-            }
-
-            if ( pictType.empty() || codedPictureNumber.empty() ) {
-                return 4;
-            }
-
-            if ( pictType == "I" ) {
-                int ix = -1;
-                try {
-                    ix = std::stoi( codedPictureNumber );
-                } catch ( std::exception &e ) {
-                    stderr << "encountered a bad number in xml: " << e.what()
-                           << std::endl;
-                    return 5;
-                } catch ( ... ) {
-                    stderr << "encountered a bad number in xml "
-                              "with unknown exception type"
-                           << std::endl;
-                    return 6;
-                }
-
-                if ( ix < 0 ) {
-                    stderr << "negative number encountered" << std::endl;
-                    return 7;
-                }
-
-                frameIndices.insert( ix );
-            }
-        }
-
-        if ( frameIndices.empty() ) {
-            stderr << "no I frames were found" << std::endl;
-            return 9;
-        }
+        auto ffprobe = FFProbeStrategy{args.input()};
+        const auto frameIndices = ffprobe.getIFrames();
 
         std::vector<kslice::Slice> slices;
         cv::VideoCapture cap{args.input()};

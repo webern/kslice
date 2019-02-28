@@ -23,8 +23,6 @@ TEST_CASE( "kslice end-to-end 2x3", "A" ) {
     kscore::Args args{7, (char **)argv};
     std::stringstream ss;
     const auto exit = kscore::kslice( args, ss, std::cerr );
-    const auto actual = ss.str();
-    CHECK( !actual.empty() );
     CHECK( 0 == exit );
 
     std::ifstream t( outputFilepath );
@@ -57,8 +55,6 @@ TEST_CASE( "kslice end-to-end 3x2", "B" ) {
     kscore::Args args{7, (char **)argv};
     std::stringstream ss;
     const auto exit = kscore::kslice( args, ss, std::cerr );
-    const auto actual = ss.str();
-    CHECK( !actual.empty() );
     CHECK( 0 == exit );
 
     std::ifstream t( outputFilepath );
