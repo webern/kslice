@@ -1,7 +1,7 @@
 #include "File.h"
 #include "catch.h"
 #include "kscore/IFrameStrategy.h"
-#include "kscore/kslice.h"
+#include "kscore/RunProgram.h"
 #include <fstream>
 #include <sstream>
 
@@ -15,7 +15,7 @@ TEST_CASE( "kslice end-to-end 2x3", "A" ) {
 
     kscore::Args args{7, (char **)argv};
     std::stringstream ss;
-    const auto exit = kscore::kslice( args, kscore::makeFFProbe( args.input() ), ss, std::cerr );
+    const auto exit = kscore::RunProgram(args, kscore::makeFFProbe(args.input()), ss, std::cerr);
     CHECK( 0 == exit );
 
     std::ifstream t( outputFilepath );
@@ -38,7 +38,7 @@ TEST_CASE( "kslice end-to-end 3x2", "B" ) {
 
     kscore::Args args{7, (char **)argv};
     std::stringstream ss;
-    const auto exit = kscore::kslice( args, kscore::makeFFProbe( args.input() ), ss, std::cerr );
+    const auto exit = kscore::RunProgram(args, kscore::makeFFProbe(args.input()), ss, std::cerr);
     CHECK( 0 == exit );
 
     std::ifstream t( outputFilepath );

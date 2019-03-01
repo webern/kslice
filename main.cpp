@@ -1,5 +1,5 @@
 #include "kscore/Args.h"
-#include "kscore/kslice.h"
+#include "kscore/RunProgram.h"
 #include <iostream>
 
 int main( int argc, char *argv[] ) {
@@ -14,7 +14,7 @@ int main( int argc, char *argv[] ) {
     }
 
     try {
-        kscore::kslice( args, kscore::makeFFProbe( args.input() ), std::cout, std::cerr );
+        kscore::RunProgram(args, kscore::makeFFProbe(args.input()), std::cout, std::cerr);
     } catch ( std::exception &e ) {
         std::cerr << e.what() << '\n';
         return 2;

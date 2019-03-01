@@ -6,6 +6,6 @@
 
 namespace kscore {
 
-    int kslice( const Args &args, IFrameStrategyUPtr &&iframeStrategy, std::ostream &stdout, std::ostream &stderr );
+    int RunProgram( const Args &args, IFrameStrategyUPtr &&iframeStrategy, std::ostream &stdout, std::ostream &stderr );
 
 }
