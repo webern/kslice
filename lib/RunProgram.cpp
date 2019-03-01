@@ -1,5 +1,6 @@
 #include "kscore/RunProgram.h"
 #include "Extract.h"
+#include "Write.h"
 #include "kscore/Args.h"
 #include "kscore/Slice.h"
 #include <fstream>
@@ -22,51 +23,6 @@ namespace kscore {
 
         const auto frameIndices = iframeStrategy->getIFrames();
         const auto frames = extract( args.input(), frameIndices, Size{args.x(), args.y()} );
-
-        //        std::vector<kslice::Slice> slices;
-        //        cv::VideoCapture cap{args.input()};
-        //
-        //        if ( !cap.isOpened() ) {
-        //            stdout << "could not open video" << std::endl;
-        //            return 10;
-        //        }
-        //
-        //        cv::Mat m;
-        //
-        //        for ( const auto frameIX : frameIndices ) {
-        //            const auto ok = cap.set( cv::CAP_PROP_POS_FRAMES, static_cast<double>( frameIX ) );
-        //
-        //            if ( !ok ) {
-        //                stdout << "'ok == false' warning, unable to read "
-        //                          "frame index "
-        //                       << frameIX << std::endl;
-        //                continue;
-        //            }
-        //
-        //            const auto isRead = cap.read( m );
-        //
-        //            if ( !isRead ) {
-        //                stdout << "'isRead == false' warning, unable to "
-        //                          "read frame index "
-        //                       << frameIX << std::endl;
-        //                continue;
-        //            }
-        //
-        //            const auto seconds = cap.get( cv::CAP_PROP_POS_MSEC ) / 1000.0;
-        //
-        //            cv::Mat greyMat;
-        //            cv::cvtColor( m, greyMat, cv::COLOR_BGR2GRAY );
-        //
-        //            greyMat.resize( 1 );
-        //            cv::Mat downsampledMap;
-        //
-        //            cv::resize( greyMat, downsampledMap, cv::Size{args.x(), args.y()}, 0, 0, cv::INTER_LINEAR );
-        //
-        //            kslice::Slice slice;
-        //            slice.seconds = seconds;
-        //            slice.data = downsampledMap;
-        //            slices.emplace_back( std::move( slice ) );
-        //        }
 
         if ( args.output().empty() ) {
             writeFrames( frames, std::cout );

@@ -38,7 +38,7 @@ message("OpenCV_INCLUDE_DIRS = ${OpenCV_INCLUDE_DIRS}")
 
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/extern/ezxml")
 
-add_library(kscore RunProgram.cpp Slice.cpp Args.cpp FFProbeStrategy.cpp Extract.cpp)
+add_library(kscore RunProgram.cpp Slice.cpp Args.cpp FFProbeStrategy.cpp Extract.cpp Write.cpp Write.h)
 target_include_directories(kscore PUBLIC include)
 target_include_directories(kscore PRIVATE .)
 target_link_libraries(kscore ${OpenCV_LIBS})
