@@ -9,23 +9,23 @@ Continuous integration testing is running on CircleCI. Click [here](https://circ
 
 ## Description
 
-`kslice` is a command line utility for extracting i-frames (also known as key frames) from video and normalizing them (by grayscale pixel averaging) to a grid of, e.g. 32x32, 64x64, etc. This is the format often used as input into neural nets and other classification algorithms.
+`kslice` is a command line utility for extracting i-frames (also known as key frames) from video and normalizing them (by grayscale pixel averaging) to a grid (e.g. 32x32, 64x64, etc.) This is the format often used as input into neural nets and other classification algorithms.
 
-Given a video file and dimensions (e.g. 32x32, 64x64, 128x128), `kslice` extracts i-frames from the video, convert the frame into grayscale, split each frame into a grid of said dimensions, calculate median value of all the pixels of each cell of the grid and write the values to a CSV file together with the timestamp of the frame.
+Given a video file and dimensions (e.g. 32x32, 64x64, 128x128), `kslice` extracts i-frames from the video, converts the frames to grayscale, splits each frame into a grid of said dimensions, calculates the median value of all the pixels of each cell of the grid and writes the values to a CSV file.
 
-Each i-frame is then output as a csv row where the first position is the timestamp (in seconds) and the rest of the row represents the pixels of the grid (0 - 255, 8-bit grayscale).
+Each i-frame is output as a csv row where the first position is the timestamp (in seconds) and the rest of the row represents the pixels of the grid (0 - 255, 8-bit grayscale).
 
 For example: if a frame timestamp (in seconds) is 3.14 and the dimensions are 3x3, an example line might look like:
 
 `3.14,42,255,9,13,67,0,27,33,123  // timestamp + 9 values (3x3)`
 
-The output will have a line like this for each i-frame.
+Each line of the csv will represent one frame.
 
 #### Usage
 
 The `kslice` command takes 5 parameters:
 
-  * `--help` a flag to displace the help info.
+  * `--help` a flag to display the help info.
   * `--input` the video file to process.
   * `--optput` the csv file to write. Optional: when omitted the csv data will be written to stdout.
   * `--x-size` the size of the output grid's x dimension. Optional: defaults to 32.
@@ -45,7 +45,7 @@ So an example call looks like this:
 
 #### Setup
 
-You must install `ffmpeg` and `opencv`. The easiest way to see what is needed to setup the a machine is to look at the CircleCI Dockerfile in `.circleci/Dockerfile` which takes a clean Ubuntu 18.04 machine and gets it ready to build `kslice`.
+You must install `boost`, `ffmpeg` and `opencv`. The easiest way to see what is needed to setup the a machine is to look at the CircleCI Dockerfile in `.circleci/Dockerfile` which takes a clean Ubuntu 18.04 machine and gets it ready to build `kslice`.
 
 ###### Prerequisites:
 
@@ -98,15 +98,15 @@ Any of the above steps may throw an exception. All exceptions are caught in main
 
 #### Architecture
 
-he bulk of the program logic is separated from `kslice` main in a library with the namespace `kscore`.
+The bulk of the program logic is separated from `kslice` main in a library with the namespace `kscore`.
 
-In such a small program, we don't need much in the way of object-oriented patterns. However, I did see an opportunity to inject a strategy object which represents the call to `ffprobe`. `IFrameStrategy` is implemented by `FFProbeStrategy`.  In theory, we could implement different strategies for this and simply inject them into the program logic. We could also mock this if we wanted to for unit testing.
+In such a small program, we don't need much in the way of object-oriented patterns. However, I did see an opportunity to inject a strategy object which represents the call to `ffprobe`. `IFrameStrategy` is implemented by `FFProbeStrategy`.  In theory, we could implement different strategies for this and simply inject them into the program logic. We could also mock this for unit testing.
 
 #### Testing
 
 The `kscore` library is tested using Catch2. Not all functions are tested due to lack of time, but there are two end-to-end integration tests which prove that `kslice`, as a whole, is working properly. A few additional unit-level tests are written as well, for example the parsing of program arguments is tested.
 
-The library, tests and kslice executable are being compiled and ran with each commit via CircleCI (see top for link).
+The library, tests and `slice` executable are being compiled and tested with each commit via CircleCI (see top for link).
 
 #### Conclusion
 
