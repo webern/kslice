@@ -1,5 +1,4 @@
 #include "Extract.h"
-#include "kscore/Slice.h"
 #include "opencv2/opencv.hpp"
 
 namespace kscore {
@@ -40,10 +39,6 @@ namespace kscore {
             cv::Mat downsampledMap;
 
             cv::resize( greyMat, downsampledMap, cv::Size{size.xPixels, size.yPixels}, 0, 0, cv::INTER_LINEAR );
-
-            kslice::Slice slice;
-            slice.seconds = seconds;
-            slice.data = downsampledMap;
 
             PixelData pixelData;
             pixelData.reserve( static_cast<size_t>( downsampledMap.rows ) );
