@@ -40,12 +40,39 @@ So an example call looks like this:
 
   * `kslice` makes an external system call to `ffprobe`, so you must have this installed and visible in your `$PATH`.
   * `kslice` links to OpenCV at runtime.
+  * `boost` is required at compile time, but is statically linked.
 
-##### Example:
+## Build
+
+#### Setup
+
+You must install `ffmpeg` and `opencv`. The easiest way to see what is needed to setup the a machine is to look at the CircleCI Dockerfile in `.circleci/Dockerfile` which takes a clean Ubuntu 18.04 machine and gets it ready to build `kslice`.
+
+###### Prerequisites:
+
+```
+sudo apt-get update && sudo apt-get install -y \
+    build-essential \
+    cmake \
+    ffmpeg \
+    libopencv-dev \
+    libboost-all-dev
+```
+
+#### Build
+
+Let's say you have cloned the repo to `/repos/kslice` and that you want to do an out-of-source build. The following commands will compile `kslice` and tests.
+
+```
+mkdir -p /repos/kslice-build
+cd /repos/kslice-build
+cmake ../kslice
+make -j12
+```
+
+#### Test
 
 
-
-Answer should be posted in a git repo.
 
 Inspiration and Research
 ------------------------
