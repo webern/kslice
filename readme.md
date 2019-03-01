@@ -70,12 +70,28 @@ cmake ../kslice
 make -j12
 ```
 
+There is no `make install` step, just use the binary from `/repos/kslice-build/kslice`, or move it where you want it.
+
 #### Test
 
+Having compiled per the instructions above, we can run the tests with:
 
+`/repos/kslice-build/lib/kslice`
 
-Inspiration and Research
-------------------------
+## Approach
+
+Initially I wanted to create a self-contained program, so I began by writing a program that links to, and uses the ffmpeg api. This proved to be quite difficult because the ffmpeg api is unstable and complicated. Also, I might have been doing something wrong, because ffmpeg wanted to link to all of my `macOS`'s frameworks, such as CoreFoundation, CoreVideo, etc. This was feeling like a bad path, so I took a step back.
+
+I then started working with OpenCV which is much easier to use. But I discovered that, although it has ffmpeg as an underlying dependency, it doesn't expose the functionality to detect I-Frames.
+
+With these challenges I decided that it would be acceptable for the `kslice` program to make an external call to `ffprobe` to get the list of i-frames from the file.
+
+#### Program Flow
+
+#### Research Links
+
+These are some links that I wanted to keep track of while working on this:
+
   * [ffmpeg api example](https://www.ffmpeg.org/doxygen/0.6/api-example_8c-source.html)
   * [cmake ffmpeg find script](https://gist.github.com/royshil/6318407)
   * [ffmpeg decode example](https://unick-soft.ru/article.php?id=14)
