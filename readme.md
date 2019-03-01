@@ -88,6 +88,19 @@ With these challenges I decided that it would be acceptable for the `kslice` pro
 
 #### Program Flow
 
+  * The program calls `ffprobe` to get a list of i-frames. It requests this in `xml` format and writes this data to a temporary file.
+  * The program then reads in the temporary `xml` file and extracts the list of i-fram indices.
+  * The program then uses OpenCV to get these frames with timestamps, convert them to grayscale, and downsample the frame to the size of the desired output grid using linear interpolation.
+  * The frames are then output to either the output file or stdout.
+
+#### Exceptions
+
+Any of the above steps may throw an exception. All exceptions are caught in main where an error message is printed to the user before exiting with a non-zero code.
+
+#### Testing
+
+The bulk of the program logic is separated from `kslice` main in a library with the namespace `kscore`. This library is tested using Catch2. Not all functions are tested as it is time consuming, but there are two end-to-end integration tests which prove that `kslice`, as a whole, is working properly. A few additional unit-level tests are written as well, for example the parsing of program arguments is tested.
+
 #### Research Links
 
 These are some links that I wanted to keep track of while working on this:
