@@ -1,7 +1,7 @@
 kslice
 ------
 
-A command line utility and library for extracting keyframes from video and normalizing them for ML processing.
+A command line utility and library for extracting I-Frames (also known as key frames) from video and normalizing them (ostensably for ML processing).
 
 #### Continuous Integration Status
 
