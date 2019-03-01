@@ -1,8 +1,6 @@
 kslice
 ------
 
-A command line utility and library for extracting I-Frames (also known as key frames) from video and normalizing them (ostensably for ML processing).
-
 #### Continuous Integration Status
 
 Continuous integration testing is running on CircleCI. Click [here](https://circleci.com/gh/webern/kslice) to go to the project.
@@ -10,15 +8,42 @@ Continuous integration testing is running on CircleCI. Click [here](https://circ
   * `master` [![CircleCI](https://circleci.com/gh/webern/kslice/tree/master.svg?style=svg)](https://circleci.com/gh/webern/kslice/tree/master)
   * `develop` [![CircleCI](https://circleci.com/gh/webern/kslice/tree/develop.svg?style=svg)](https://circleci.com/gh/webern/kslice/tree/develop)
 
-## Requirements
+## Description
 
-Given a video file and dimensions (e.g. 32x32, 64x64, 128x128), extract keyframes from the video, convert the frame into grayscale, split each frame into a grid of said dimensions, calculate median value of all the pixels of each cell of the grid and write the values to a CSV file together with the timestamp of the frame.
+`kslice` is a command line utility for extracting i-frames (also known as key frames) from video and normalizing them (by grayscale pixel averaging) to a grid of, e.g. 32x32, 64x64, etc. This is the format often used as input into neural nets and other classification algorithms.
+
+Given a video file and dimensions (e.g. 32x32, 64x64, 128x128), `kslice` extracts i-frames from the video, convert the frame into grayscale, split each frame into a grid of said dimensions, calculate median value of all the pixels of each cell of the grid and write the values to a CSV file together with the timestamp of the frame.
+
+Each i-frame is then output as a csv row where the first position is the timestamp (in seconds) and the rest of the row represents the pixels of the grid (0 - 255, 8-bit grayscale).
+
+For example: if a frame timestamp (in seconds) is 3.14 and the dimensions are 3x3, an example line might look like:
+
+`3.14,42,255,9,13,67,0,27,33,123  // timestamp + 9 values (3x3)`
+
+The output will have a line like this for each i-frame.
+
+#### Usage
+
+The `kslice` command takes 5 parameters:
+
+  * `--help` a flag to displace the help info.
+  * `--input` the video file to process.
+  * `--optput` the csv file to write. Optional: when omitted the csv data will be written to stdout.
+  * `--x-size` the size of the output grid's x dimension. Optional: defaults to 32.
+  * `--y-size` the size of the output grid's y dimension. Optional: defaults to 32.
+
+So an example call looks like this:
+
+`kslice --input="./path/my.mp4" --output="data.csv" --x-size=20 --y-size=20`
+
+#### Dependencies
+
+  * `kslice` makes an external system call to `ffprobe`, so you must have this installed and visible in your `$PATH`.
+  * `kslice` links to OpenCV at runtime.
 
 ##### Example:
 
-If a frame timestamp (in seconds) is 3.14 and the dimensions are 3x3 an example line might look like:
 
-`    3.14,42,255,9,13,67,0,27,33,123  // timestamp + 9 values (3x3)`
 
 Answer should be posted in a git repo.
 
