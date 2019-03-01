@@ -2,7 +2,6 @@
 #include "Extract.h"
 #include "Write.h"
 #include "kscore/Args.h"
-#include "kscore/Slice.h"
 #include <fstream>
 #include <iostream>
 #include <set>
