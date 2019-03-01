@@ -3,7 +3,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: webern/ksliceci:v001
+      - image: matthewjamesbriggs/kslicebld:v001
 
     working_directory: /src
     steps:

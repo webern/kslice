@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 project(kslice)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/lib")

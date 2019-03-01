@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 project(kscore)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 set(PUBLIC_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 set(PRIVATE_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR})
 set(TEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/test)
@@ -12,7 +12,7 @@ enable_testing()
 find_package( OpenCV REQUIRED )
 
 set(Boost_USE_STATIC_LIBS   ON)
-find_package( boost COMPONENTS system filesystem program_options REQUIRED )
+find_package( Boost COMPONENTS system filesystem program_options REQUIRED )
 
 if (NOT Boost_FOUND)
     message(FATAL_ERROR "Boost not found")
@@ -38,7 +38,7 @@ message("OpenCV_INCLUDE_DIRS = ${OpenCV_INCLUDE_DIRS}")
 
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/extern/ezxml")
 
-add_library(kscore kslice.cpp Slice.cpp)
+add_library(kscore RunProgram.cpp Args.cpp FFProbeStrategy.cpp Extract.cpp Write.cpp Write.h)
 target_include_directories(kscore PUBLIC include)
 target_include_directories(kscore PRIVATE .)
 target_link_libraries(kscore ${OpenCV_LIBS})
@@ -53,7 +53,7 @@ target_link_libraries( kscore ezxml )
 enable_testing()
 add_executable(kstest ${TEST_DIR}/main.cpp
         ${TEST_DIR}/TestHelp.cpp
-        ${TEST_DIR}/TestKSlice.cpp)
+        ${TEST_DIR}/TestKSlice.cpp test/TestArgs.cpp)
 target_include_directories(kstest PRIVATE ${TEST_DIR})
 target_include_directories(kstest PRIVATE include)
 target_include_directories(kstest PRIVATE .)
