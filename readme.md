@@ -75,11 +75,11 @@ There is no `make install` step, just use the binary from `/repos/kslice-build/k
 
 Having compiled per the instructions above, we can run the tests with:
 
-`/repos/kslice-build/lib/kslice`
+`/repos/kslice-build/lib/kstest`
 
 ## Approach
 
-Initially I wanted to create a self-contained program, so I began by writing a program that links to, and uses the ffmpeg api. This proved to be quite difficult because the ffmpeg api is unstable and complicated. Also, I might have been doing something wrong, because ffmpeg wanted to link to all of my `macOS`'s frameworks, such as CoreFoundation, CoreVideo, etc. This was feeling like a bad path, so I took a step back.
+Initially I wanted to create a self-contained program, so I began by writing a program that links to, and uses the ffmpeg api. This proved to be quite difficult because the ffmpeg api is unstable and complicated. Also, I might have been doing something wrong because ffmpeg wanted to link to all of my `macOS`'s frameworks, such as CoreFoundation, CoreVideo, etc. This was feeling like a bad path, so I took a step back.
 
 I then started working with OpenCV which is much easier to use. But I discovered that, although it has ffmpeg as an underlying dependency, it doesn't expose the functionality to detect I-Frames.
 
@@ -90,7 +90,7 @@ With these challenges I decided that it would be acceptable for the `kslice` pro
   * The program calls `ffprobe` to get a list of i-frames. It requests this in `xml` format and writes this data to a temporary file.
   * The program then reads in the temporary `xml` file and extracts the list of i-fram indices.
   * The program then uses OpenCV to get these frames with timestamps, convert them to grayscale, and downsample the frame to the size of the desired output grid using linear interpolation.
-  * The frames are then output to either the output file or stdout.
+  * The frames are then output to either a csv file or stdout.
 
 #### Exceptions
 
@@ -101,6 +101,8 @@ Any of the above steps may throw an exception. All exceptions are caught in main
 The bulk of the program logic is separated from `kslice` main in a library with the namespace `kscore`.
 
 In such a small program, we don't need much in the way of object-oriented patterns. However, I did see an opportunity to inject a strategy object which represents the call to `ffprobe`. `IFrameStrategy` is implemented by `FFProbeStrategy`.  In theory, we could implement different strategies for this and simply inject them into the program logic. We could also mock this for unit testing.
+
+If we view the `kscore` library from the standpoint of a client, the headers for boost and OpenCV are 'hidden' in the cpp files. Thus clients of the library need not add these include paths.
 
 #### Testing
 
