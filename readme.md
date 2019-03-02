@@ -88,13 +88,13 @@ With these challenges I decided that it would be acceptable for the `kslice` pro
 #### Program Flow
 
   * The program calls `ffprobe` to get a list of i-frames. It requests this in `xml` format and writes this data to a temporary file.
-  * The program then reads in the temporary `xml` file and extracts the list of i-fram indices.
+  * The program then reads in the temporary `xml` file and extracts the list of i-frame indices.
   * The program then uses OpenCV to get these frames with timestamps, convert them to grayscale, and downsample the frame to the size of the desired output grid using linear interpolation.
   * The frames are then output to either a csv file or stdout.
 
 #### Exceptions
 
-Any of the above steps may throw an exception. All exceptions are caught in main where an error message is printed to the user before exiting with a non-zero code.
+Any of the above steps may throw an exception. All exceptions are caught in main where an error message is printed to the user before exiting with a non-zero code. A different non-zero code is used for each exit path to aide in error troubleshooting.
 
 #### Architecture
 
